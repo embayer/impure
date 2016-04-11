@@ -33,9 +33,10 @@ prompt_pure_human_time_to_var() {
 	local hours=$(( total_seconds / 60 / 60 % 24 ))
 	local minutes=$(( total_seconds / 60 % 60 ))
 	local seconds=$(( total_seconds % 60 ))
-	(( days > 0 )) && human+="${days}d "
-	(( hours > 0 )) && human+="${hours}h "
-	(( minutes > 0 )) && human+="${minutes}m "
+
+	(( days > 0 )) && human+="${days}d"
+	(( hours > 0 )) && human+="${hours}h"
+	(( minutes > 0 )) && human+="${minutes}m"
 	human+="${seconds}s"
 
 	# store human readable time in variable as specified by caller
@@ -59,6 +60,26 @@ prompt_pure_clear_screen() {
 	print -n '\e[2J\e[0;0H'
 	# print preprompt
 	prompt_pure_preprompt_render precmd
+}
+
+prompt_pure_check_git_commit_time() {
+    prompt_pure_git_commit_time=
+
+    # determine the time since last commit. If branch is clean,
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        # only proceed if there is actually a commit.
+        if [[ $(git log 2>&1 > /dev/null | grep -c "^fatal: bad default revision") == 0 ]]; then
+            # get the last commit.
+            last_commit=$(git log --pretty=format:'%at' -1 2> /dev/null)
+            now=$(date +%s)
+            seconds_since_last_commit=$((now-last_commit))
+
+            prompt_pure_git_commit_time=
+            {
+                prompt_pure_human_time_to_var $seconds_since_last_commit "prompt_pure_git_commit_time"
+            }
+        fi
+    fi
 }
 
 prompt_pure_check_git_arrows() {
@@ -102,6 +123,54 @@ prompt_pure_set_title() {
 	print -n '\a'
 }
 
+prompt_pure_check_virtualenv_name() {
+    prompt_pure_virtualenv_name=
+
+    virtualenv_name=$(basename "$VIRTUAL_ENV")
+    if [[ "$virtualenv_name" != "" ]]; then
+        prompt_pure_virtualenv_name="[ 🐍 $virtualenv_name ]"
+    fi
+}
+
+prompt_pure_check_battery() {
+    battery_status=
+
+    # get the battery status as int
+    local battery=`ioreg -n AppleSmartBattery -r | awk '$1~/Capacity/{c[$1]=$3} END{OFMT="%.0f"; max=c["\"MaxCapacity\""]; print (max>0? 100*c["\"CurrentCapacity\""]/max: "?")}'`
+
+    # determine how many full bars to draw
+    local bars=0
+    if [[ $battery == 100 ]]; then
+        local bars=10
+    elif [[ $battery -gt 90 ]]; then
+        local bars=9
+    elif [[ $battery -gt 80 ]]; then
+        local bars=8
+    elif [[ $battery -gt 70 ]]; then
+        local bars=7
+    elif [[ $battery -gt 60 ]]; then
+        local bars=6
+    elif [[ $battery -gt 50 ]]; then
+        local bars=5
+    elif [[ $battery -gt 40 ]]; then
+        local bars=4
+    elif [[ $battery -gt 30 ]]; then
+        local bars=3
+    elif [[ $battery -gt 20 ]]; then
+        local bars=2
+    elif [[ $battery -gt 10 ]]; then
+        local bars=1
+    elif [[ $battery -lt 10 ]]; then
+        local bars=0
+    fi
+
+    # fill
+    local full="${(l:$bars::|:)}"
+    local empty="${(l:10-$bars::|:)}"
+
+    battery_status="[ 🔋 %F{green}${full}%F{red}${empty}%f ]"
+}
+
 prompt_pure_preexec() {
 	# attempt to detect and prevent prompt_pure_async_git_fetch from interfering with user initiated git or hub fetch
 	[[ $2 =~ (git|hub)\ .*(pull|fetch) ]] && async_flush_jobs 'prompt_pure'
@@ -109,7 +178,7 @@ prompt_pure_preexec() {
 	prompt_pure_cmd_timestamp=$EPOCHSECONDS
 
 	# shows the current dir and executed command in the title while a process is active
-	prompt_pure_set_title 'ignore-escape' "$PWD:t: $2"
+	# prompt_pure_set_title 'ignore-escape' "$PWD:t: $2"
 }
 
 # string length ignoring ansi escapes
@@ -131,11 +200,17 @@ prompt_pure_preprompt_render() {
 	[[ -n ${prompt_pure_git_last_dirty_check_timestamp+x} ]] && git_color=red
 
 	# construct preprompt, beginning with path
-	local preprompt="%F{blue}%~%f"
+	local preprompt="[%F{blue} %~%f ]"
+
+    preprompt+=" ["
 	# git info
 	preprompt+="%F{$git_color}${vcs_info_msg_0_}${prompt_pure_git_dirty}%f"
 	# git pull/push arrows
 	preprompt+="%F{cyan}${prompt_pure_git_arrows}%f"
+
+	preprompt+="${prompt_pure_git_commit_time}"
+    preprompt+=" ]"
+
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
 	# execution time
@@ -190,6 +265,8 @@ prompt_pure_preprompt_render() {
 		zle && zle .reset-prompt
 	fi
 
+    RPROMPT="${prompt_pure_virtualenv_name} ${battery_status}"
+
 	# store previous preprompt for comparison
 	prompt_pure_last_preprompt=$preprompt
 }
@@ -205,8 +282,14 @@ prompt_pure_precmd() {
 	# check for git arrows
 	prompt_pure_check_git_arrows
 
+	prompt_pure_check_git_commit_time
+
+    prompt_pure_check_virtualenv_name
+
+    prompt_pure_check_battery
+
 	# shows the full path in the title
-	prompt_pure_set_title 'expand-prompt' '%~'
+	# prompt_pure_set_title 'expand-prompt' '%~'
 
 	# get vcs info
 	vcs_info
@@ -304,6 +387,9 @@ prompt_pure_async_callback() {
 			;;
 		prompt_pure_async_git_fetch)
 			prompt_pure_check_git_arrows
+            prompt_pure_check_git_commit_time
+            prompt_pure_check_virtualenv_name
+            prompt_pure_check_battery
 			prompt_pure_preprompt_render
 			;;
 	esac
@@ -351,4 +437,6 @@ prompt_pure_setup() {
 	PROMPT="%(?.%F{magenta}.%F{red})${PURE_PROMPT_SYMBOL:-❯}%f "
 }
 
+# disable the default virtualenv info
+export VIRTUAL_ENV_DISABLE_PROMPT=yes
 prompt_pure_setup "$@"
