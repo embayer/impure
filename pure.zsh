@@ -43,10 +43,6 @@ local char_shit="💩 "
 local char_left_bracket="$color_white〈$color_reset"
 local char_right_bracket="$color_white 〉$color_reset"
 
-# local color_git="%F{141}"
-# local color_virtualenv="%F{228}"
-
-
 # turns seconds into human readable time
 # 165392 => 1d2156m32s
 # https://github.com/sindresorhus/pretty-time-zsh
