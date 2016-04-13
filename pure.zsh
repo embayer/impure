@@ -9,7 +9,7 @@
 # %a => current action (rebase/merge)
 # prompt:
 # %F => color dict
-# %f => reset color
+# $color_reset => reset color
 # %~ => current path
 # %* => time
 # %n => username
@@ -24,20 +24,56 @@
 # \e[2K => clear everything on the current line
 
 
+local color_reset="%{$reset_color%}"
+local color_white="%F{231}"
+local color_orange="%F{208}"
+local color_green="%F{148}"
+local color_green="%F{203}"
+
+local color_pwd="%{%B%F{84}%}"
+local color_git="%{%B%F{141}%}"
+local color_virtualenv="%{%B%F{228}%}"
+
+local color_prompt_char_1="%F{57}"
+local color_prompt_char_2="%F{129}"
+local color_prompt_char_3="%F{198}"
+
+local char_prompt=" $color_prompt_char_1❯$color_prompt_char_2❯$color_prompt_char_3❯$color_reset "
+local char_shit="💩 "
+local char_left_bracket="$color_white〈$color_reset"
+local char_right_bracket="$color_white 〉$color_reset"
+
+# local color_git="%F{141}"
+# local color_virtualenv="%F{228}"
+
+
 # turns seconds into human readable time
-# 165392 => 1d 21h 56m 32s
+# 165392 => 1d2156m32s
 # https://github.com/sindresorhus/pretty-time-zsh
 prompt_pure_human_time_to_var() {
 	local human=" " total_seconds=$1 var=$2
+
+    local color_short="%{%B%F{green}%}"
+    local color_medium="%{%B%F{yellow}%}"
+    local color_long="%{%B%F{red}%}"
+    if [[ $total_seconds -lt 601 ]]; then
+        local color_period="$color_short"
+    elif [[ $total_seconds -lt 7201 ]]; then
+        local color_period="$color_medium"
+    else
+        local color_period="$color_long"
+    fi
+
 	local days=$(( total_seconds / 60 / 60 / 24 ))
 	local hours=$(( total_seconds / 60 / 60 % 24 ))
 	local minutes=$(( total_seconds / 60 % 60 ))
 	local seconds=$(( total_seconds % 60 ))
 
+    human+="$color_period"
 	(( days > 0 )) && human+="${days}d"
 	(( hours > 0 )) && human+="${hours}h"
 	(( minutes > 0 )) && human+="${minutes}m"
-	human+="${seconds}s"
+	human+="${seconds}s$color_reset"
 
 	# store human readable time in variable as specified by caller
 	typeset -g "${var}"="${human}"
@@ -61,6 +97,16 @@ prompt_pure_clear_screen() {
 	# print preprompt
 	prompt_pure_preprompt_render precmd
 }
+
+prompt_pure_check_pwd() {
+    prompt_pure_pwd=
+    if [[ -w $PWD ]]; then
+        prompt_pure_pwd="$char_left_bracket $color_pwd%~$color_reset $char_right_bracket"
+    else
+        prompt_pure_pwd="$char_left_bracket %F{red}%~$color_reset $char_right_bracket"
+    fi
+}
+
 
 prompt_pure_check_git_commit_time() {
     prompt_pure_git_commit_time=
@@ -128,7 +174,7 @@ prompt_pure_check_virtualenv_name() {
 
     virtualenv_name=$(basename "$VIRTUAL_ENV")
     if [[ "$virtualenv_name" != "" ]]; then
-        prompt_pure_virtualenv_name="[ 🐍 $virtualenv_name ]"
+        prompt_pure_virtualenv_name="$char_left_bracket 🐍 $color_virtualenv$virtualenv_name$color_reset $char_right_bracket"
     fi
 }
 
@@ -168,7 +214,7 @@ prompt_pure_check_battery() {
     local full="${(l:$bars::|:)}"
     local empty="${(l:10-$bars::|:)}"
 
-    battery_status="[ 🔋 %F{green}${full}%F{red}${empty}%f ]"
+    battery_status="$char_left_bracket 🔋 %F{green}${full}%F{red}${empty}$color_reset $char_right_bracket"
 }
 
 prompt_pure_preexec() {
@@ -196,25 +242,31 @@ prompt_pure_preprompt_render() {
 	[[ -n ${prompt_pure_cmd_timestamp+x} && "$1" != "precmd" ]] && return
 
 	# set color for git branch/dirty status, change color if dirty checking has been delayed
-	local git_color=242
+	local git_color=$color_git
 	[[ -n ${prompt_pure_git_last_dirty_check_timestamp+x} ]] && git_color=red
 
 	# construct preprompt, beginning with path
-	local preprompt="[%F{blue} %~%f ]"
+	# local preprompt="[%F{blue} %~$color_reset ]"
+    local preprompt="$prompt_pure_pwd"
 
-    preprompt+=" ["
 	# git info
-	preprompt+="%F{$git_color}${vcs_info_msg_0_}${prompt_pure_git_dirty}%f"
+    git_part="${vcs_info_msg_0_}${prompt_pure_git_dirty}"
 	# git pull/push arrows
-	preprompt+="%F{cyan}${prompt_pure_git_arrows}%f"
+	git_part+="${prompt_pure_git_arrows}"
 
-	preprompt+="${prompt_pure_git_commit_time}"
-    preprompt+=" ]"
+	git_part+="${prompt_pure_git_commit_time}"
+
+
+    if [[ $git_part != '' ]]; then
+        preprompt+=" $char_left_bracket$color_git$git_part$color_reset $char_right_bracket "
+    fi
+
+    preprompt+=""
 
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
 	# execution time
-	preprompt+="%F{yellow}${prompt_pure_cmd_exec_time}%f"
+	preprompt+="%F{yellow}${prompt_pure_cmd_exec_time}$color_reset"
 
 	# if executing through precmd, do not perform fancy terminal editing
 	if [[ "$1" == "precmd" ]]; then
@@ -279,6 +331,8 @@ prompt_pure_precmd() {
 	# with the initial preprompt rendering
 	prompt_pure_cmd_timestamp=
 
+    prompt_pure_check_pwd
+
 	# check for git arrows
 	prompt_pure_check_git_arrows
 
@@ -317,7 +371,7 @@ prompt_pure_async_git_dirty() {
 		test -z "$(command git status --porcelain --ignore-submodules -unormal)"
 	fi
 
-	(( $? )) && echo "*"
+	(( $? )) && echo "○%F{white}●$color_reset"
 }
 
 prompt_pure_async_git_fetch() {
@@ -386,6 +440,7 @@ prompt_pure_async_callback() {
 			(( $exec_time > 2 )) && prompt_pure_git_last_dirty_check_timestamp=$EPOCHSECONDS
 			;;
 		prompt_pure_async_git_fetch)
+            prompt_pure_check_pwd
 			prompt_pure_check_git_arrows
             prompt_pure_check_git_commit_time
             prompt_pure_check_virtualenv_name
@@ -428,13 +483,14 @@ prompt_pure_setup() {
 	fi
 
 	# show username@host if logged in through SSH
-	[[ "$SSH_CONNECTION" != '' ]] && prompt_pure_username=' %F{242}%n@%m%f'
+	[[ "$SSH_CONNECTION" != '' ]] && prompt_pure_username=' %F{242}%n@%m$color_reset'
 
 	# show username@host if root, with username in white
-	[[ $UID -eq 0 ]] && prompt_pure_username=' %F{white}%n%f%F{242}@%m%f'
+	[[ $UID -eq 0 ]] && prompt_pure_username=' %F{white}%n$color_reset%F{242}@%m$color_reset'
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT="%(?.%F{magenta}.%F{red})${PURE_PROMPT_SYMBOL:-❯}%f "
+	PROMPT="%(?.$char_prompt.$char_shit) "
+    # PS2='[ %{%B%F{yellow}%}%_$color_reset ] '
 }
 
 # disable the default virtualenv info
