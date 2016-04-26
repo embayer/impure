@@ -1,5 +1,5 @@
 # Pure
-# by Sindre Sorhus
+# forked from Sindre Sorhus
 # https://github.com/sindresorhus/pure
 # MIT License
 
@@ -9,7 +9,7 @@
 # %a => current action (rebase/merge)
 # prompt:
 # %F => color dict
-# $color_reset => reset color
+# %f => reset color
 # %~ => current path
 # %* => time
 # %n => username
@@ -24,24 +24,34 @@
 # \e[2K => clear everything on the current line
 
 
-local color_reset="%{$reset_color%}"
-local color_white="%F{231}"
-local color_orange="%F{208}"
-local color_green="%F{148}"
-local color_green="%F{203}"
 
-local color_pwd="%{%B%F{84}%}"
-local color_git="%{%B%F{141}%}"
-local color_virtualenv="%{%B%F{228}%}"
+local color_reset="%f"
 
-local color_prompt_char_1="%F{57}"
-local color_prompt_char_2="%F{129}"
-local color_prompt_char_3="%F{198}"
+local color_red="%F{203}"
+local color_orange="%F{216}"
+local color_green="%F{84}"
+# local color_yellow="%{%B%F{228}%}"
+# local color_violet="%{%B%F{141}%}"
+
+local color_separator="%F{60}"
+local color_pwd="%{%B%F{119}%}"
+local color_git="%{%B%F{117}%}"
+local color_virtualenv="%{%B%F{122}%}"
+local color_user="%{%B%F{51}%}"
+local color_host="%{%B%F{27}%}"
+
+local color_prompt_char_1=$color_pwd
+local color_prompt_char_2=$color_git
+local color_prompt_char_3=$color_virtualenv
+
+# local color_prompt_char_1="%F{57}"
+# local color_prompt_char_2="%F{129}"
+# local color_prompt_char_3="%F{198}"
 
 local char_prompt=" $color_prompt_char_1❯$color_prompt_char_2❯$color_prompt_char_3❯$color_reset "
 local char_shit="💩 "
-local char_left_bracket="$color_white〈$color_reset"
-local char_right_bracket="$color_white 〉$color_reset"
+local char_left_bracket="$color_separator〈$color_reset"
+local char_right_bracket="$color_separator 〉$color_reset"
 
 # turns seconds into human readable time
 # 165392 => 1d2156m32s
@@ -49,9 +59,9 @@ local char_right_bracket="$color_white 〉$color_reset"
 prompt_pure_human_time_to_var() {
 	local human=" " total_seconds=$1 var=$2
 
-    local color_short="%{%B%F{green}%}"
-    local color_medium="%{%B%F{yellow}%}"
-    local color_long="%{%B%F{red}%}"
+    local color_short=$color_green
+    local color_medium=$color_orange
+    local color_long=$color_red
     if [[ $total_seconds -lt 601 ]]; then
         local color_period="$color_short"
     elif [[ $total_seconds -lt 7201 ]]; then
@@ -97,9 +107,9 @@ prompt_pure_clear_screen() {
 prompt_pure_check_pwd() {
     prompt_pure_pwd=
     if [[ -w $PWD ]]; then
-        prompt_pure_pwd="$char_left_bracket $color_pwd%~$color_reset $char_right_bracket"
+        prompt_pure_pwd="$char_left_bracket$color_pwd%~$color_reset$char_right_bracket"
     else
-        prompt_pure_pwd="$char_left_bracket %F{red}%~$color_reset $char_right_bracket"
+        prompt_pure_pwd="$char_left_bracket$color_red%~$color_reset$char_right_bracket"
     fi
 }
 
@@ -170,7 +180,7 @@ prompt_pure_check_virtualenv_name() {
 
     virtualenv_name=$(basename "$VIRTUAL_ENV")
     if [[ "$virtualenv_name" != "" ]]; then
-        prompt_pure_virtualenv_name="$char_left_bracket 🐍 $color_virtualenv$virtualenv_name$color_reset $char_right_bracket"
+        prompt_pure_virtualenv_name="$char_left_bracket🐍 $color_virtualenv$virtualenv_name$color_reset$char_right_bracket"
     fi
 }
 
@@ -210,7 +220,7 @@ prompt_pure_check_battery() {
     local full="${(l:$bars::|:)}"
     local empty="${(l:10-$bars::|:)}"
 
-    battery_status="$char_left_bracket 🔋 %F{green}${full}%F{red}${empty}$color_reset $char_right_bracket"
+    battery_status="$char_left_bracket🔋 $color_green${full}$color_red${empty}$color_reset$char_right_bracket"
 }
 
 prompt_pure_preexec() {
@@ -242,7 +252,6 @@ prompt_pure_preprompt_render() {
 	[[ -n ${prompt_pure_git_last_dirty_check_timestamp+x} ]] && git_color=red
 
 	# construct preprompt, beginning with path
-	# local preprompt="[%F{blue} %~$color_reset ]"
     local preprompt="$prompt_pure_pwd"
 
 	# git info
@@ -252,17 +261,14 @@ prompt_pure_preprompt_render() {
 
 	git_part+="${prompt_pure_git_commit_time}"
 
-
     if [[ $git_part != '' ]]; then
-        preprompt+=" $char_left_bracket$color_git$git_part$color_reset $char_right_bracket "
+        preprompt+=$char_left_bracket$color_git$git_part$color_reset$char_right_bracket
     fi
-
-    preprompt+=""
 
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
 	# execution time
-	preprompt+="%F{yellow}${prompt_pure_cmd_exec_time}$color_reset"
+	preprompt+="${prompt_pure_cmd_exec_time}$color_reset"
 
 	# if executing through precmd, do not perform fancy terminal editing
 	if [[ "$1" == "precmd" ]]; then
@@ -479,16 +485,16 @@ prompt_pure_setup() {
 	fi
 
 	# show username@host if logged in through SSH
-	[[ "$SSH_CONNECTION" != '' ]] && prompt_pure_username=' %F{242}%n@%m$color_reset'
+    [[ "$SSH_CONNECTION" != '' ]] && prompt_pure_username=" $char_left_bracket$color_user%n$color_reset@$color_host%m$color_reset$char_right_bracket"
 
 	# show username@host if root, with username in white
-	[[ $UID -eq 0 ]] && prompt_pure_username=' %F{white}%n$color_reset%F{242}@%m$color_reset'
+	[[ $UID -eq 0 ]] && prompt_pure_username=" $char_left_bracket$color_red%n$color_reset@$color_host%m$color_reset$char_right_bracket"
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT="%(?.$char_prompt.$char_shit) "
-    # PS2='[ %{%B%F{yellow}%}%_$color_reset ] '
+	PROMPT="%(?.$char_prompt.$char_shit)$color_reset "
 }
 
 # disable the default virtualenv info
 export VIRTUAL_ENV_DISABLE_PROMPT=yes
+
 prompt_pure_setup "$@"
