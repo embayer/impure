@@ -262,9 +262,11 @@ prompt_pure_preprompt_render() {
 	git_part+="${prompt_pure_git_commit_time}"
 
     if [[ $git_part != '' ]]; then
-        preprompt+=$char_left_bracket$color_git$git_part$color_reset$char_right_bracket
+        # preprompt+=" $char_left_bracket$color_git$git_part$color_reset $char_right_bracket "
+        preprompt+="$char_left_bracket$color_git$git_part$color_reset$char_right_bracket"
     fi
 
+    preprompt+=""
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
 	# execution time
