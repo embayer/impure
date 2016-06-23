@@ -2,43 +2,35 @@
 
 > Pretty, quite minimal and fast ZSH prompt.
 
+![preview](https://raw.githubusercontent.com/embayer/impure/master/img/preview.png)
+
 # Difference to Pure
 
-- in git repos, the the time of the last change colorful shown
+- in git repos, the the time of the last change is shown in time and color
 - read-only paths are shown in red
 - custom, variable colors
 - prompt blocks are separated with brackets
 - shows the reason for continuation
 - uses PS2
-- custom python virtualenv info
+- custom python virtualenv info 🐍
+- docker-machine info 🐳
 - battery status (for OS X)
 - prompt char turns to 💩 if exit code != 0
 
 # Pure features
 
-- Comes with the perfect prompt character.  
-  Author went through the whole Unicode range to find it.
+- Comes with the perfect prompt character. Author went through the whole Unicode range to find it.
 - Shows `git` branch and whether it's dirty (with a `*`).
 - Indicates when you have unpushed/unpulled `git` commits with up/down arrows. *(Check is done asynchronously!)*
 - Prompt character turns red if the last command didn't exit with `0`.
 - Command execution time will be displayed if it exceeds the set threshold.
 - Username and host only displayed when in an SSH session.
-- Shows the current path in the title and the [current folder & command](screenshot-title-cmd.png) when a process is running.
+- Shows the current path in the title and the [current folder & command](img/screenshot-title-cmd.png) when a process is running.
 - Makes an excellent starting point for your own custom prompt.
 
 ## Install
 
-Can be installed with `npm` or manually. Requires git 2.0.0+ and ZSH 5.0.0+.
-
-### npm
-
-```console
-$ npm install --global pure-prompt
-```
-
-That's it. Skip to [Getting started](#getting-started).
-
-### Manually
+Requires git 2.0.0+ and ZSH 5.0.0+.
 
 1. Either…
   - Clone this repo
