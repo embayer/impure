@@ -1,15 +1,20 @@
-# Pure
+# Impure
 
-> Pretty, minimal and fast ZSH prompt
+> Pretty, quite minimal and fast ZSH prompt.
 
-<img src="screenshot.png" width="550">
+# Difference to Pure
 
+- in git repos, the the time of the last change colorful shown
+- read-only paths are shown in red
+- custom, variable colors
+- prompt blocks are separated with brackets
+- shows the reason for continuation
+- uses PS2
+- custom python virtualenv info
+- battery status (for OS X)
+- prompt char turns to 💩 if exit code != 0
 
-## Overview
-
-Most prompts are cluttered, ugly and slow. I wanted something visually pleasing that stayed out of my way.
-
-### Why?
+# Pure features
 
 - Comes with the perfect prompt character.  
   Author went through the whole Unicode range to find it.
@@ -20,7 +25,6 @@ Most prompts are cluttered, ugly and slow. I wanted something visually pleasing 
 - Username and host only displayed when in an SSH session.
 - Shows the current path in the title and the [current folder & command](screenshot-title-cmd.png) when a process is running.
 - Makes an excellent starting point for your own custom prompt.
-
 
 ## Install
 
