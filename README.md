@@ -6,16 +6,17 @@
 
 # Difference to Pure
 
-- in git repos, the the time of the last change is shown in time and color
-- read-only paths are shown in red
-- custom, variable colors
-- prompt blocks are separated with brackets
-- shows the reason for continuation
-- uses PS2
+- In git repos, the the time of the last change is shown in time and color
+- Read-only paths are shown in red
+- Custom, variable colors
+- Prompt blocks are separated with brackets
+- Shows the reason for continuation
+- Uses PS2
+- Battery status (for OS X)
 - custom python virtualenv info 🐍
 - docker-machine info 🐳
-- battery status (for OS X)
-- prompt char turns to 💩 if exit code != 0
+- Prompt char turns to 💩 if exit code != 0
+- Prompt char is ❯❯❯
 
 # [Pure](https://github.com/sindresorhus/pure) features
 
@@ -35,16 +36,16 @@ Requires git 2.0.0+ and ZSH 5.0.0+.
 1. Either…
   - Clone this repo
   - add it as a submodule, or
-  - just download `pure.zsh`
+  - just download `impure.zsh`
 
-2. Symlink `pure.zsh` to somewhere in [`$fpath`](http://www.refining-linux.org/archives/46/ZSH-Gem-12-Autoloading-functions/) with the name `prompt_pure_setup`.
+2. Symlink `impure.zsh` to somewhere in [`$fpath`](http://www.refining-linux.org/archives/46/ZSH-Gem-12-Autoloading-functions/) with the name `prompt_pure_setup`.
 
 3. Symlink `async.zsh` in `$fpath` with the name `async`.
 
 #### Example
 
 ```console
-$ ln -s "$PWD/pure.zsh" /usr/local/share/zsh/site-functions/prompt_pure_setup
+$ ln -s "$PWD/impure.zsh" /usr/local/share/zsh/site-functions/prompt_pure_setup
 $ ln -s "$PWD/async.zsh" /usr/local/share/zsh/site-functions/async
 ```
 *Run `echo $fpath` to see possible locations.*
@@ -59,10 +60,9 @@ fpath=( "$HOME/.zfunctions" $fpath )
 Then install the theme there:
 
 ```console
-$ ln -s "$PWD/pure.zsh" "$HOME/.zfunctions/prompt_pure_setup"
+$ ln -s "$PWD/impure.zsh" "$HOME/.zfunctions/prompt_pure_setup"
 $ ln -s "$PWD/async.zsh" "$HOME/.zfunctions/async"
 ```
-
 
 ## Getting started
 
@@ -73,7 +73,6 @@ Initialize the prompt system (if not so already) and choose `pure`:
 autoload -U promptinit && promptinit
 prompt pure
 ```
-
 
 ## Options
 
@@ -118,7 +117,6 @@ PURE_CMD_MAX_EXEC_TIME=10
 prompt pure
 ```
 
-
 ## Tips
 
 [Tomorrow Night Eighties](https://github.com/chriskempson/tomorrow-theme) theme with the [Droid Sans Mono](http://www.google.com/webfonts/specimen/Droid+Sans+Mono) font (15pt) is a beautiful combination, as seen in the screenshot above.<sup>1</sup> Just make sure you have anti-aliasing enabled in your Terminal.
@@ -131,7 +129,7 @@ To have commands colorized as seen in the screenshot install [zsh-syntax-highlig
 
 ### [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
 
-1. Symlink (or copy) `pure.zsh` to `~/.oh-my-zsh/custom/themes/pure.zsh-theme`.
+1. Symlink (or copy) `impure.zsh` to `~/.oh-my-zsh/custom/themes/impure.zsh-theme`.
 2. Set `ZSH_THEME="pure"` in your `.zshrc` file.
 
 ### [prezto](https://github.com/sorin-ionescu/prezto)
