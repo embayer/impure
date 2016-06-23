@@ -34,6 +34,8 @@ local color_separator="%F{60}"
 local color_pwd="%{%B%F{119}%}"
 local color_git="%{%B%F{117}%}"
 local color_virtualenv="%{%B%F{122}%}"
+# local color_docker="%{%B%F{63}%}"
+local color_docker="%{%B%F{69}%}"
 local color_user="%{%B%F{51}%}"
 local color_host="%{%B%F{27}%}"
 
@@ -171,15 +173,20 @@ prompt_pure_set_title() {
 prompt_pure_check_virtualenv_name() {
     prompt_pure_virtualenv_name=
 
-    virtualenv_name=$(basename "$VIRTUAL_ENV")
+    local virtualenv_name=$(basename "$VIRTUAL_ENV")
     if [[ "$virtualenv_name" != "" ]]; then
         prompt_pure_virtualenv_name="$char_left_bracket🐍 $color_virtualenv$virtualenv_name$color_reset$char_right_bracket"
     fi
 }
 
-prompt_pure_check_virtualenv_name() {
-    foo
-    
+prompt_pure_check_docker_machine_name() {
+    prompt_pure_docker_machine_name=
+
+    local docker_machine_name=$(docker-machine active 2> /dev/null)
+    if [[ "$docker_machine_name" != "" ]]; then
+        prompt_pure_docker_machine_name="$char_left_bracket🐳 $color_docker$docker_machine_name$color_reset$char_right_bracket"
+    fi
+}
 
 
 prompt_pure_check_battery() {
@@ -316,7 +323,7 @@ prompt_pure_preprompt_render() {
         zle && zle .reset-prompt
     fi
 
-    RPROMPT="${prompt_pure_virtualenv_name} ${battery_status}"
+    RPROMPT="${prompt_pure_docker_machine_name} ${prompt_pure_virtualenv_name} ${battery_status}"
 
     # store previous preprompt for comparison
     prompt_pure_last_preprompt=$preprompt
@@ -338,6 +345,8 @@ prompt_pure_precmd() {
     prompt_pure_check_git_commit_time
 
     prompt_pure_check_virtualenv_name
+
+    prompt_pure_check_docker_machine_name
 
     prompt_pure_check_battery
 
