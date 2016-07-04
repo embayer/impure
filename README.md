@@ -14,7 +14,7 @@
 - Uses PS2
 - Battery status (for OS X)
 - custom python virtualenv info 🐍
-- docker-machine info 🐳
+- docker-machine info 🐳 (first machine name char + ip)
 - Prompt char turns to 💩 if exit code != 0
 - Prompt char is ❯❯❯
 

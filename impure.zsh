@@ -183,8 +183,10 @@ prompt_pure_check_docker_machine_name() {
     prompt_pure_docker_machine_name=
 
     local docker_machine_name=$(docker-machine active 2> /dev/null)
+    local docker_machine_ip=$(docker-machine ip ${docker_machine_name} 2> /dev/null)
+    local docker_machine_display=$(echo ${docker_machine_name}|cut -c -1)
     if [[ "$docker_machine_name" != "" ]]; then
-        prompt_pure_docker_machine_name="$char_left_bracket🐳 $color_docker$docker_machine_name$color_reset$char_right_bracket"
+        prompt_pure_docker_machine_name="$char_left_bracket🐳 $color_docker$docker_machine_display $docker_machine_ip$color_reset$char_right_bracket"
     fi
 }
 
